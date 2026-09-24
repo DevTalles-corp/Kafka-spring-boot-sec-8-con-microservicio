@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: notifications-service
+
+  profiles:
+    active: dev
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: notifications
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.bistro.*"
+        spring.json.type.mapping: >
+          com.bistro.reservations.events.ReservationConfirmedV2:com.bistro.notifications.events.ReservationConfirmedV2,
+          com.bistro.reservations.events.ReservationRejected:com.bistro.notifications.events.ReservationRejected,
+          com.bistro.reservations.events.ReservationCancelled:com.bistro.notifications.events.ReservationCancelled
+
+server:
+  port: 8081
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  mail:
+    host: localhost
+    port: 1025
+
+logging:
+  level:
+    com.bistro: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+
+logging:
+  level:
+    com.bistro: INFO
