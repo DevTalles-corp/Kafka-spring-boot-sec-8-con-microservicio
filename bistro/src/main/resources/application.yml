@@ -1,6 +1,9 @@
 spring:
   application:
     name: bistro
+  modulith:
+    events:
+      republish-outstanding-events-on-restart: true
 
   profiles:
     active: dev

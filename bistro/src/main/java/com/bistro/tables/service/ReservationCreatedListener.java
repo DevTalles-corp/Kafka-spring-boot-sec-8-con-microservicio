@@ -7,8 +7,10 @@ import com.bistro.tables.idempotency.ProcessedEvent;
 import com.bistro.tables.idempotency.ProcessedEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -19,10 +21,10 @@ import java.time.LocalDateTime;
 public class ReservationCreatedListener {
 
     private final TableService tableService;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final ApplicationEventPublisher eventPublisher;
     private final ProcessedEventRepository processedEventRepository;
 
-    @KafkaListener(topics = "reservation-created" , groupId = "tables", concurrency = "3")
+    @ApplicationModuleListener
     public void onReservationCreated(ReservationCreated event){
 
         if(processedEventRepository.existsById(event.reservationId())){
@@ -36,14 +38,12 @@ public class ReservationCreatedListener {
                     log.info("Reserva {} → mesa {} ({} lugares) asignada",
                             event.reservationId(), table.getTableNumber(), table.getCapacity());
 
-                    TableAssigned assigned = new TableAssigned(
+                    eventPublisher.publishEvent(new TableAssigned(
                             event.reservationId(),
                             table.getId(),
                             table.getTableNumber(),
                             LocalDateTime.now()
-                    );
-
-                    kafkaTemplate.send("table-assigned", String.valueOf(event.reservationId()), assigned);
+                    ));
 
                 },
 
@@ -51,12 +51,10 @@ public class ReservationCreatedListener {
                     log.info("Reserva {} → sin mesa para {} personas",
                             event.reservationId(), event.partySize());
 
-                    TableUnavailable unavailable = new TableUnavailable(
+                    eventPublisher.publishEvent(new TableUnavailable(
                             event.reservationId(),
                             "Sin mesa disponible para " + event.partySize() + " personas",
-                            LocalDateTime.now()
-                    );
-                     kafkaTemplate.send("table-unavailable", String.valueOf(event.reservationId()), unavailable);
+                            LocalDateTime.now()));
                 });
 
         processedEventRepository.save(new ProcessedEvent(event.reservationId()));

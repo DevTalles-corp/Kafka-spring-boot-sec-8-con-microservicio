@@ -34,8 +34,6 @@ public class ReservationService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ReservationMapper reservationMapper;
     private final ApplicationEventPublisher eventPublisher;
-    private final JsonMapper jsonMapper;
-    private final OutboxRepository outboxRepository;
 
     @Transactional
     public void confirm( Long reservationId, Long tableId, String tableNumber){
@@ -116,21 +114,10 @@ public class ReservationService {
 
         Reservation saved = reservationRepository.save(reservation);
 
-        ReservationCreated event = new ReservationCreated(
+        eventPublisher.publishEvent(new ReservationCreated(
                 saved.getId(),
                 saved.getPartySize(),
-                LocalDateTime.now());
-
-        String payload = jsonMapper.writeValueAsString(event);
-
-        OutboxMessage message = OutboxMessage.builder()
-                .topic("reservation-created")
-                .messageKey(String.valueOf(saved.getId()))
-                .payload(payload)
-                .status(OutboxStatus.PENDING)
-                .build();
-
-        outboxRepository.save(message);
+                LocalDateTime.now()));
 
         eventPublisher.publishEvent(new ReservationStateChanged(
                 saved.getId(),
