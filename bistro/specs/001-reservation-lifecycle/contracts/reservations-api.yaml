@@ -1,0 +1,135 @@
+openapi: 3.0.3
+info:
+  title: Bistro Reservations API
+  description: API for managing restaurant reservation lifecycle.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+paths:
+  /reservations:
+    post:
+      summary: Create a new reservation request
+      operationId: createReservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationRequest'
+      responses:
+        '200':
+          description: Reservation processed successfully (CONFIRMED or REJECTED)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '400':
+          description: Validation error (e.g., malformed email, missing fields, partySize out of range, or partySize > 12)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /reservations/{reservationCode}:
+    get:
+      summary: Get reservation status by code
+      operationId: getReservationStatus
+      parameters:
+        - name: reservationCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Reservation found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationStatusResponse'
+        '404':
+          description: Reservation not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+components:
+  schemas:
+    ReservationRequest:
+      type: object
+      required:
+        - customerName
+        - customerEmail
+        - reservationTime
+        - partySize
+      properties:
+        customerName:
+          type: string
+          minLength: 1
+          example: Ana García
+        customerEmail:
+          type: string
+          format: email
+          example: ana@example.com
+        reservationTime:
+          type: string
+          format: date-time
+          example: '2026-08-20T19:30:00'
+        partySize:
+          type: integer
+          minimum: 1
+          maximum: 12
+          example: 4
+    ReservationResponse:
+      type: object
+      properties:
+        reservationCode:
+          type: string
+          example: RES-20260818-A1B2C3
+        status:
+          type: string
+          enum: [CONFIRMED, REJECTED]
+        assignedTableId:
+          type: integer
+          nullable: true
+          example: 2
+    ReservationStatusResponse:
+      type: object
+      properties:
+        reservationCode:
+          type: string
+        status:
+          type: string
+          enum: [CONFIRMED, REJECTED]
+        customerName:
+          type: string
+        reservationTime:
+          type: string
+          format: date-time
+        partySize:
+          type: integer
+        assignedTableId:
+          type: integer
+          nullable: true
+    ProblemDetail:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string

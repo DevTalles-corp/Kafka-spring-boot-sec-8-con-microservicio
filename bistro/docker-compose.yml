@@ -1,0 +1,60 @@
+services:
+  kafka:
+    image: apache/kafka:4.0.0
+    container_name: bistro-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      # Identidad y roles del nodo (KRaft: sin ZooKeeper)
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
+      # Dos puertas de clientes: una para el host, otra para la red de Docker
+      KAFKA_LISTENERS: HOST://0.0.0.0:9092,DOCKER://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: HOST://localhost:9092,DOCKER://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: HOST:PLAINTEXT,DOCKER:PLAINTEXT,CONTROLLER:PLAINTEXT
+      # Un solo broker en dev: factor de replicación 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:latest
+    container_name: bistro-kafka-ui
+    ports:
+      - "8090:8080"
+    depends_on:
+      - kafka
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+      KAFKA_CLUSTERS_0_NAME: bistro-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: bistro-mailpit
+    ports:
+      - "1025:1025"   # SMTP (por acá le mandamos)
+      - "8025:8025"   # UI web (por acá los vemos)
+
+  postgres:
+    image: postgres:17
+    container_name: bistro-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: bistro
+      POSTGRES_USER: bistro
+      POSTGRES_PASSWORD: bistro
+
+
+
+
+
+
+
+
+
