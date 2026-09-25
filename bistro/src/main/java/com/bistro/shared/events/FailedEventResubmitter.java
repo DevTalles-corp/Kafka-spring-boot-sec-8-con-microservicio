@@ -1,4 +1,4 @@
-package com.bistro.reservations.events;
+package com.bistro.shared.events;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.modulith.events.IncompleteEventPublications;

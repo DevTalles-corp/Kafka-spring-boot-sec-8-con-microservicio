@@ -1,15 +1,13 @@
 package com.bistro.tables.service;
 
-import com.bistro.reservations.events.ReservationCreated;
 import com.bistro.tables.events.TableAssigned;
+import com.bistro.tables.events.TableRequested;
 import com.bistro.tables.events.TableUnavailable;
 import com.bistro.tables.idempotency.ProcessedEvent;
 import com.bistro.tables.idempotency.ProcessedEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +23,7 @@ public class ReservationCreatedListener {
     private final ProcessedEventRepository processedEventRepository;
 
     @ApplicationModuleListener
-    public void onReservationCreated(ReservationCreated event){
+    public void onReservationCreated(TableRequested event){
 
         if(processedEventRepository.existsById(event.reservationId())){
             log.info("Reserva {} ya procesada, se ignora el evento repetido",

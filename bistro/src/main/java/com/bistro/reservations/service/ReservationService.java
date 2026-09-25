@@ -7,16 +7,15 @@ import com.bistro.reservations.controller.ReservationResponse;
 import com.bistro.reservations.controller.ReservationStatusResponse;
 import com.bistro.reservations.events.ReservationCancelled;
 import com.bistro.reservations.events.ReservationConfirmedV2;
-import com.bistro.reservations.events.ReservationCreated;
 import com.bistro.reservations.events.ReservationRejected;
 import com.bistro.reservations.history.ReservationStateChanged;
 import com.bistro.reservations.model.Reservation;
 import com.bistro.reservations.model.ReservationStatus;
 import com.bistro.reservations.repository.ReservationRepository;
+import com.bistro.tables.events.TableRequested;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +30,6 @@ import java.util.UUID;
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ReservationMapper reservationMapper;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -113,7 +111,7 @@ public class ReservationService {
 
         Reservation saved = reservationRepository.save(reservation);
 
-        eventPublisher.publishEvent(new ReservationCreated(
+        eventPublisher.publishEvent(new TableRequested(
                 saved.getId(),
                 saved.getPartySize(),
                 LocalDateTime.now()));

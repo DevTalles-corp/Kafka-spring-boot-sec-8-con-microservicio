@@ -1,8 +1,8 @@
-package com.bistro.reservations.events;
+package com.bistro.tables.events;
 
 import java.time.LocalDateTime;
 
-public record ReservationCreated(
+public record TableRequested(
         Long reservationId,
         Integer partySize,
         LocalDateTime occurredAt
