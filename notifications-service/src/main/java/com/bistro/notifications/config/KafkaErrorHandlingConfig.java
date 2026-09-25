@@ -1,10 +1,12 @@
-package com.bistro.shared.config;
+package com.bistro.notifications.config;
 
-import com.bistro.shared.NonRetryableException;
+import com.bistro.notifications.shared.NonRetryableException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
@@ -34,6 +36,23 @@ public class KafkaErrorHandlingConfig {
         errorHandler.addNotRetryableExceptions(NonRetryableException.class);
 
         return errorHandler;
+    }
+
+    @Bean
+    public NewTopic reservationConfirmedV2DltTopic() {
+        return TopicBuilder.name("reservation-confirmed-v2-dlt")
+                .partitions(3)
+                .replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic reservationRejectedDltTopic() {
+        return TopicBuilder.name("reservation-rejected-dlt").partitions(3).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic reservationCancelledDltTopic() {
+        return TopicBuilder.name("reservation-cancelled-dlt").partitions(3).replicas(1).build();
     }
 }
 

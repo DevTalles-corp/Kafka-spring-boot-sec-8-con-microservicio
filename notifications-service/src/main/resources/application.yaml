@@ -10,13 +10,17 @@ spring:
     consumer:
       group-id: notifications
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
         spring.json.trusted.packages: "com.bistro.*"
         spring.json.type.mapping: >
           com.bistro.reservations.events.ReservationConfirmedV2:com.bistro.notifications.events.ReservationConfirmedV2,
           com.bistro.reservations.events.ReservationRejected:com.bistro.notifications.events.ReservationRejected,
           com.bistro.reservations.events.ReservationCancelled:com.bistro.notifications.events.ReservationCancelled
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
 
 server:
   port: 8081
