@@ -9,22 +9,6 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaTopicConfig {
 
     @Bean
-    public NewTopic reservationCreatedTopic(){
-        return TopicBuilder.name("reservation-created")
-                .partitions(3)
-                .replicas(1)
-                .build();
-    }
-
-    @Bean
-    public NewTopic tableAssignedTopic(){
-        return TopicBuilder.name("table-assigned")
-                .partitions(3)
-                .replicas(1)
-                .build();
-    }
-
-    @Bean
     public NewTopic reservationConfirmedTopic() {
         return TopicBuilder.name("reservation-confirmed")
                 .partitions(3)
@@ -40,13 +24,6 @@ public class KafkaTopicConfig {
                 .build();
     }
 
-    @Bean
-    public NewTopic tableUnavailableTopic() {
-        return TopicBuilder.name("table-unavailable")
-                .partitions(3)
-                .replicas(1)
-                .build();
-    }
     @Bean
     public NewTopic reservationRejectedTopic() {
         return TopicBuilder.name("reservation-rejected")

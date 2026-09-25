@@ -4,6 +4,8 @@ spring:
   modulith:
     events:
       republish-outstanding-events-on-restart: true
+      kafka:
+        enable-json: false
 
   profiles:
     active: dev

@@ -8,9 +8,6 @@ import com.bistro.reservations.controller.ReservationStatusResponse;
 import com.bistro.reservations.events.*;
 import com.bistro.reservations.history.ReservationStateChanged;
 import com.bistro.reservations.model.*;
-import com.bistro.reservations.outbox.OutboxMessage;
-import com.bistro.reservations.outbox.OutboxRepository;
-import com.bistro.reservations.outbox.OutboxStatus;
 import com.bistro.reservations.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +15,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -61,7 +57,7 @@ public class ReservationService {
                 reservation.getReservationTime(),
                 LocalDateTime.now());
 
-        kafkaTemplate.send("reservation-confirmed-v2", String.valueOf(reservation.getId()), confirmedV2);
+        eventPublisher.publishEvent(confirmedV2);
 
         eventPublisher.publishEvent(new ReservationStateChanged(
                 reservation.getId(),
@@ -94,8 +90,7 @@ public class ReservationService {
                 reason,
                 LocalDateTime.now());
 
-        kafkaTemplate.send("reservation-rejected",
-                String.valueOf(reservation.getId()), rejected);
+        eventPublisher.publishEvent(rejected);
 
         eventPublisher.publishEvent(new ReservationStateChanged(
                 reservation.getId(),
@@ -172,7 +167,7 @@ public class ReservationService {
                 reservation.getCustomerEmail(),
                 LocalDateTime.now());
 
-        kafkaTemplate.send("reservation-cancelled", String.valueOf(reservation.getId()), cancelled);
+        eventPublisher.publishEvent(cancelled);
 
         eventPublisher.publishEvent(new ReservationStateChanged(
                 reservation.getId(),
